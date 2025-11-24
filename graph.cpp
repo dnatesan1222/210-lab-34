@@ -92,7 +92,6 @@ int main() {
     Graph graph(edges);
     graph.printGraph();
 
-    cout << endl;
     graph.DFS(0);
     graph.BFS(0);
 
