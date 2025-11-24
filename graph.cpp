@@ -8,98 +8,88 @@
 #include <limits>
 using namespace std;
 
-const int SIZE = 11; // nodes 0–10
+const int SIZE = 11;
 
 struct Edge {
-    int src, dest, weight; // weight = move difficulty
+	int src, dest, weight;
 };
 
 typedef pair<int, int> Pair;
 
 class Graph {
-public:
-    vector<vector<Pair>> adjList;
+	public:
+		vector<vector<Pair>> adjList;
 
-    Graph(const vector<Edge> &edges) {
-        adjList.resize(SIZE);
-        for (auto &edge : edges) {
-            int src = edge.src;
-            int dest = edge.dest;
-            int weight = edge.weight;
+		Graph(const vector<Edge> &edges) {
+			adjList.resize(SIZE);
+			for (auto &edge : edges) {
+				adjList[edge.src].push_back(make_pair(edge.dest, edge.weight));
+				adjList[edge.dest].push_back(make_pair(edge.src, edge.weight));
+			}
+		}
 
-            // undirected graph
-            adjList[src].push_back(make_pair(dest, weight));
-            adjList[dest].push_back(make_pair(src, weight));
-        }
-    }
+		void minimumSpanningTree() {
+			const int INF = numeric_limits<int>::max();
 
-    // DFS and BFS methods could still be here if needed for earlier steps,
-    // but they are NOT called in main for this step.
+			vector<int> key(SIZE, INF);
+			vector<int> parent(SIZE, -1);
+			vector<bool> inMST(SIZE, false);
 
-    // Dijkstra's algorithm: shortest total weight from 'start' to all vertices
-    void shortestPaths(int start) {
-        const int INF = numeric_limits<int>::max();
-        vector<int> dist(SIZE, INF);
+			key[0] = 0;
 
-        // min-heap priority queue: (currentDistance, node)
-        priority_queue<Pair, vector<Pair>, greater<Pair>> pq;
+			for (int count = 0; count < SIZE - 1; count++) {
+				int u = -1;
+				int minKey = INF;
 
-        dist[start] = 0;
-        pq.push(make_pair(0, start));
+				for (int i = 0; i < SIZE; i++) {
+					if (!inMST[i] && key[i] < minKey) {
+						minKey = key[i];
+						u = i;
+					}
+				}
 
-        while (!pq.empty()) {
-            int currentDist = pq.top().first;
-            int u = pq.top().second;
-            pq.pop();
+				if (u == -1) break;
 
-            if (currentDist > dist[u]) {
-                continue;
-            }
+				inMST[u] = true;
 
-            for (auto &neighbor : adjList[u]) {
-                int v = neighbor.first;
-                int weight = neighbor.second;
+				for (auto &nbr : adjList[u]) {
+					int v = nbr.first;
+					int weight = nbr.second;
 
-                if (dist[v] > dist[u] + weight) {
-                    dist[v] = dist[u] + weight;
-                    pq.push(make_pair(dist[v], v));
-                }
-            }
-        }
+					if (!inMST[v] && weight < key[v]) {
+						key[v] = weight;
+						parent[v] = u;
+					}
+				}
+			}
 
-        cout << "Shortest path from node " << start << ":" << endl;
-        for (int i = 0; i < SIZE; i++) {
-            cout << start << " -> " << i << " : ";
-            if (dist[i] == INF) {
-                cout << "unreachable";
-            } else {
-                cout << dist[i];
-            }
-            cout << endl;
-        }
-    }
+			cout << "Minimum Spanning Tree edges:" << endl;
+			for (int i = 0; i < SIZE; i++) {
+				if (parent[i] != -1) {
+					cout << "Edge from " << parent[i] << " to " << i
+						<< " with capacity: " << key[i] << " units" << endl;
+				}
+			}
+		}
 };
 
 int main() {
-    // Updated graph edges
-    vector<Edge> edges = {
-        {0, 2, 10},  // 0 <-> 2
-        {0, 4, 7},   // 0 <-> 4
-        {2, 4, 3},   // 2 <-> 4
-        {2, 5, 8},   // 2 <-> 5
-        {2, 6, 12},  // 2 <-> 6
-        {4, 7, 4},   // 4 <-> 7
-        {5, 8, 6},   // 5 <-> 8
-        {6, 9, 5},   // 6 <-> 9
-        {7,10, 9},   // 7 <-> 10
-        {8, 9, 2},   // 8 <-> 9
-        {9,10,11}    // 9 <-> 10
-    };
+	vector<Edge> edges = {
+		{0, 2, 10},
+		{0, 4, 7},
+		{2, 4, 3},
+		{2, 5, 8},
+		{2, 6, 12},
+		{4, 7, 4},
+		{5, 8, 6},
+		{6, 9, 5},
+		{7,10, 9},
+		{8, 9, 2},
+		{9,10,11}
+	};
 
-    Graph g(edges);
+	Graph g(edges);
+	g.minimumSpanningTree();
 
-    // For this step, ONLY print shortest paths:
-    g.shortestPaths(0);
-
-    return 0;
+	return 0;
 }
